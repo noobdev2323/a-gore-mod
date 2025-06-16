@@ -79,6 +79,7 @@ function sigma_gib(ragdoll,bone_name)
 
 			if bone ~= k then
 				ragdoll:ManipulateBoneScale(bone,Vector(0,0,0)) --scale the bone
+				colideBone(ragdoll,i)
 			end
 		end
 	end
