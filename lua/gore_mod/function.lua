@@ -47,6 +47,17 @@ function gib_PhysBone(ragdoll,bone_name,damege_data)
         gib_PhysBone(ragdoll,bone_parent_name)
     end
 end
+function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of one entity to a ragdoll's physics bones (modified version of some of RobotBoy655's code)
+	if !IsValid( ragdoll1 ) or !IsValid( ragdoll2 ) then return end
+	for i = 0, ragdoll2:GetPhysicsObjectCount() - 1 do
+		local bone = ragdoll2:GetPhysicsObjectNum( i )
+		if ( IsValid( bone ) ) then
+			local pos, ang = ragdoll1:GetBonePosition( ragdoll2:TranslatePhysBoneToBone( i ) )
+			if ( pos ) then bone:SetPos( pos ) end
+			if ( ang ) then bone:SetAngles( ang ) end
+		end
+	end
+end
 function decap_ragdoll(ragdoll,bone_name)
     if ragdoll:LookupBone(bone_name) == nil then return end
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
@@ -54,26 +65,25 @@ function decap_ragdoll(ragdoll,bone_name)
 	local ragdollGIB = ents.Create("prop_ragdoll")
     if IsValid(ragdollGIB) then
     	ragdollGIB:SetModel(ragdoll:GetModel())
-    	ragdollGIB:SetPos(ragdoll:GetPos())
-		ragdollGIB:SetAngles(ragdoll:GetLocalAngles()) 
+    	ragdollGIB:SetPos(ragdoll:GetPos()) 
     	ragdollGIB:Spawn()
-
+		noob_gore_TransferBones( ragdoll, ragdollGIB )
 		sigma_gib(ragdollGIB,bone_name)
 	end
 end
 function sigma_gib(ragdoll,bone_name)
 	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
-	if !ragdoll.aids then ragdoll.aids = {} table.insert(DECAP_RAGDOLLS, ragdoll) end
+	if !ragdoll.slice_gib then ragdoll.slice_gib = {} table.insert(DECAP_RAGDOLLS, ragdoll) end
 
-	ragdoll.aids[bone_id] = bone_id
+	ragdoll.slice_gib[bone_id] = bone_id
 	ragdoll.main_bone_sigma = bone_id
+	sigma_children(ragdoll,bone_id)
 	local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
-	ragdoll:RemoveInternalConstraint(PhysBone)
+	ragdoll:RemoveInternalConstraint(PhysBone) --remove ragdoll Constraint
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
-		for k, v in pairs(ragdoll.aids) do
-			local bone = ragdoll:TranslatePhysBoneToBone(i)
-
+		local bone = ragdoll:TranslatePhysBoneToBone(i)
+		if ragdoll.slice_gib[bone] ~= bone then
 			if bone ~= k then
 				ragdoll:ManipulateBoneScale(bone,Vector(0,0,0)) --scale the bone
 				ragdoll:RemoveInternalConstraint(i)
@@ -85,7 +95,7 @@ end
 function sigma_children(ragdoll,bone_id)
 	local sigma = ragdoll:GetChildBones(bone_id)
     for k, v in pairs(sigma) do --no more shit code
-        ragdoll.aids[bone_id] = v
+        ragdoll.slice_gib[v] = v
 		sigma_children(ragdoll,v)
     end
 end
@@ -98,7 +108,7 @@ hook.Add("Think", "ForcePhysbonePositions_Think_sigma", function()
 		end
 	end
 	for _,ragdoll in ipairs( DECAP_RAGDOLLS ) do
-		if ragdoll.aids then
+		if ragdoll.slice_gib then
 			ForcePhysBonePos2(ragdoll) 
 		end
 	end
