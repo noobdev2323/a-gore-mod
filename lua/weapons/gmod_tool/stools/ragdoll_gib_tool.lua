@@ -52,6 +52,7 @@ function TOOL:RightClick(trace)
 		local bone = ent:TranslatePhysBoneToBone(hit)
 		local bone_name = ent:GetBoneName( bone ) 	
 		gib_PhysBone(ent,bone_name)
+		decap_ragdoll(ent,bone_name)
 		ent:EmitSound('garrysmod/save_load'..math.random(1,3)..'.wav', 75, 100, 0.4) --make funny sound
 	end
 end

@@ -36,7 +36,7 @@ function gib_PhysBone(ragdoll,bone_name,damege_data)
     local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
     local ObjectNum = ragdoll:GetPhysicsObjectNum(PhysBone)
 			
-    if ObjectNum:IsValid() then
+    if ObjectNum:IsValid() then --check if the object is valid
         ragdoll:RemoveInternalConstraint(PhysBone)
         ragdoll.gib_bone[bone_id] = bone_id
         colideBone(ragdoll,PhysBone)
@@ -46,6 +46,38 @@ function gib_PhysBone(ragdoll,bone_name,damege_data)
 		local bone_parent_name = ragdoll:GetBoneName( v )
         gib_PhysBone(ragdoll,bone_parent_name)
     end
+end
+function decap_ragdoll(ragdoll,bone_name)
+    if ragdoll:LookupBone(bone_name) == nil then return end
+    local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
+
+	local ragdollGIB = ents.Create("prop_ragdoll")
+    if IsValid(ragdollGIB) then
+    	ragdollGIB:SetModel(ragdoll:GetModel())
+    	ragdollGIB:SetPos(ragdoll:GetPos())
+		ragdollGIB:SetAngles(ragdoll:GetLocalAngles()) 
+    	ragdollGIB:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+    	ragdollGIB:Spawn()
+
+		local children = ragdoll:GetBoneParent(bone_id)
+		local bone_parent_name = ragdoll:GetBoneName( children )
+		sigma_gib(ragdollGIB,bone_parent_name)
+	end
+end
+function sigma_gib(ragdoll,bone_name)
+	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
+
+    ragdoll:ManipulateBoneScale(bone_id,Vector(0,0,0)) --scale the bone
+    local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
+    local ObjectNum = ragdoll:GetPhysicsObjectNum(PhysBone)
+			
+    local children = ragdoll:GetBoneParent(bone_id)
+
+	if children ~= -1 then
+		print(children)
+		local bone_parent_name = ragdoll:GetBoneName( children )
+		sigma_gib(ragdoll,bone_parent_name)
+	end
 end
 gib_PhysBone_RAGDOLLS = {}
 hook.Add("Think", "ForcePhysbonePositions_Think_sigma", function()
