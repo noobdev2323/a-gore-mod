@@ -137,7 +137,7 @@ function ForcePhysBonePos2(ragdoll)
 		if boneid then 
 			local phys = ragdoll:GetPhysicsObjectNum(i)
 			
-			if IsValid(phys) and boneid ~= ragdoll.main_bone_sigma then
+			if IsValid(phys) and ragdoll.slice_gib[boneid] ~= boneid then
 				local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
 		
 				local gibbed_physobj = ragdoll:GetPhysicsObjectNum(i)
