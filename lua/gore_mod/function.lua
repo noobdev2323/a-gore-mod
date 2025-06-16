@@ -56,7 +56,6 @@ function decap_ragdoll(ragdoll,bone_name)
     	ragdollGIB:SetModel(ragdoll:GetModel())
     	ragdollGIB:SetPos(ragdoll:GetPos())
 		ragdollGIB:SetAngles(ragdoll:GetLocalAngles()) 
-    	ragdollGIB:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
     	ragdollGIB:Spawn()
 
 		sigma_gib(ragdollGIB,bone_name)
@@ -71,7 +70,6 @@ function sigma_gib(ragdoll,bone_name)
 	ragdoll.main_bone_sigma = bone_id
 	local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
 	ragdoll:RemoveInternalConstraint(PhysBone)
-	sigma_children(ragdoll,bone_id)
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		for k, v in pairs(ragdoll.aids) do
 			local bone = ragdoll:TranslatePhysBoneToBone(i)
@@ -87,7 +85,7 @@ end
 function sigma_children(ragdoll,bone_id)
 	local sigma = ragdoll:GetChildBones(bone_id)
     for k, v in pairs(sigma) do --no more shit code
-        ragdoll.aids[bone_id] = k
+        ragdoll.aids[bone_id] = v
 		sigma_children(ragdoll,v)
     end
 end
@@ -125,20 +123,11 @@ function ForcePhysBonePos(ragdoll)
 end
 function ForcePhysBonePos2(ragdoll)
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
-		local bone = ragdoll:TranslatePhysBoneToBone(i)
-		if bone == ragdoll.main_bone_sigma then
-			return 
-		end
-		for k, v in pairs(ragdoll.aids) do
-			if bone == k then
-				return
-			end
-		end
 		local boneid = ragdoll:TranslatePhysBoneToBone(i)
 		if boneid then 
 			local phys = ragdoll:GetPhysicsObjectNum(i)
 			
-			if IsValid(phys) then
+			if IsValid(phys) and boneid ~= ragdoll.main_bone_sigma then
 				local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
 		
 				local gibbed_physobj = ragdoll:GetPhysicsObjectNum(i)
