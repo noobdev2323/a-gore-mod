@@ -69,7 +69,8 @@ function sigma_gib(ragdoll,bone_name)
 
 	ragdoll.aids[bone_id] = bone_id
 	ragdoll.main_bone_sigma = bone_id
-	sigma_children(ragdoll,bone_id)
+	local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
+	ragdoll:RemoveInternalConstraint(PhysBone)
 
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		for k, v in pairs(ragdoll.aids) do
@@ -123,14 +124,24 @@ function ForcePhysBonePos(ragdoll)
 	end
 end
 function ForcePhysBonePos2(ragdoll)
-	for k, v in pairs(ragdoll.aids) do
-		local bone = ragdoll:TranslateBoneToPhysBone(k)
-		local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
-
-		local gibbed_physobj = ragdoll:GetPhysicsObjectNum(bone)
-		local parent_physobj = ragdoll:GetPhysicsObjectNum(main_bone)
-		gibbed_physobj:SetPos( parent_physobj:GetPos() )
-		gibbed_physobj:SetAngles( parent_physobj:GetAngles() )
+	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
+		local bone = ragdoll:TranslatePhysBoneToBone(i)
+		if bone == ragdoll.main_bone_sigma then
+			return 
+		end
+		local boneid = ragdoll:TranslatePhysBoneToBone(i)
+		if boneid then 
+			local phys = ragdoll:GetPhysicsObjectNum(i)
+			
+			if IsValid(phys) then
+				local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
+		
+				local gibbed_physobj = ragdoll:GetPhysicsObjectNum(i)
+				local parent_physobj = ragdoll:GetPhysicsObjectNum(main_bone)
+				gibbed_physobj:SetPos( parent_physobj:GetPos() )
+				gibbed_physobj:SetAngles( parent_physobj:GetAngles() )
+			end
+		end
 	end
 end
 function bonemerge_prop(ragdoll,model)
