@@ -59,25 +59,36 @@ function decap_ragdoll(ragdoll,bone_name)
     	ragdollGIB:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
     	ragdollGIB:Spawn()
 
-		local children = ragdoll:GetBoneParent(bone_id)
-		local bone_parent_name = ragdoll:GetBoneName( children )
-		sigma_gib(ragdollGIB,bone_parent_name)
+		sigma_gib(ragdollGIB,bone_name)
 	end
 end
 function sigma_gib(ragdoll,bone_name)
 	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
+	local bone_shit = ragdoll:TranslatePhysBoneToBone(bone_id)
+	local phys_sigma = ragdoll:GetPhysicsObjectNum(bone_shit)
 
-    ragdoll:ManipulateBoneScale(bone_id,Vector(0,0,0)) --scale the bone
-    local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
-    local ObjectNum = ragdoll:GetPhysicsObjectNum(PhysBone)
-			
-    local children = ragdoll:GetBoneParent(bone_id)
+	if !ragdoll.aids then ragdoll.aids = {} end
 
-	if children ~= -1 then
-		print(children)
-		local bone_parent_name = ragdoll:GetBoneName( children )
-		sigma_gib(ragdoll,bone_parent_name)
+	ragdoll.aids[bone_id] = bone_id
+
+	sigma_children(ragdoll,bone_id)
+
+	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
+		for k, v in pairs(ragdoll.aids) do
+			local bone = ragdoll:TranslatePhysBoneToBone(i)
+
+			if bone ~= k then
+				ragdoll:ManipulateBoneScale(bone,Vector(0,0,0)) --scale the bone
+			end
+		end
 	end
+end
+function sigma_children(ragdoll,bone_id)
+	local sigma = ragdoll:GetChildBones(bone_id)
+    for k, v in pairs(sigma) do --no more shit code
+        ragdoll.aids[bone_id] = v
+		sigma_children(ragdoll,v)
+    end
 end
 gib_PhysBone_RAGDOLLS = {}
 hook.Add("Think", "ForcePhysbonePositions_Think_sigma", function()
