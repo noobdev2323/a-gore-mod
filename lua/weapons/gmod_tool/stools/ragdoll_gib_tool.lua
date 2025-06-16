@@ -18,9 +18,9 @@ if CLIENT then
 	}
 	language.Add("tool.ragdoll_gib_tool.name", "Ragdoll gib tool")
 	language.Add("tool.ragdoll_gib_tool.desc", "can break ragdoll joints")
-	language.Add("tool.ragdoll_gib_tool.0", "click to destroy ragdoll joints")
-	language.Add( "tool.ragdoll_gib_tool.left", "destroy ragdoll PhysicsBone" )
-	language.Add( "tool.ragdoll_gib_tool.right", "destroy all ragdoll PhysicsBone" )
+	language.Add("tool.ragdoll_gib_tool.0", "click to dismenber ragdoll")
+	language.Add( "tool.ragdoll_gib_tool.left", "destroy ragdoll limb" )
+	language.Add( "tool.ragdoll_gib_tool.right", "slice ragdoll limb" )
 end
 if SERVER then
 
