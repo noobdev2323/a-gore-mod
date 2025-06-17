@@ -79,6 +79,7 @@ function sigma_gib(ragdoll,bone_name)
 	ragdoll.slice_gib[bone_id] = bone_id
 	ragdoll.main_bone_sigma = bone_id
 	sigma_children(ragdoll,bone_id)
+	sigma_scale(ragdoll)
 	local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
 	ragdoll:RemoveInternalConstraint(PhysBone) --remove ragdoll Constraint
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
@@ -97,6 +98,13 @@ function sigma_children(ragdoll,bone_id)
     for k, v in pairs(sigma) do --no more shit code
         ragdoll.slice_gib[v] = v
 		sigma_children(ragdoll,v)
+    end
+end
+function sigma_scale(ragdoll)
+    for i = 0, ragdoll:GetBoneCount()-1 do
+		if ragdoll.slice_gib[i] ~= i then
+			ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone
+		end
     end
 end
 gib_PhysBone_RAGDOLLS = {}
