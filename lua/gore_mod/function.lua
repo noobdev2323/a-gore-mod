@@ -1,3 +1,13 @@
+util.AddNetworkString( "gore_mode_do_bone_shit" ) 
+function do_pos_bone_shit(ent,bones_sigma_table,main_sigma_bone)
+	if IsValid(ent) then
+	    net.Start( "gore_mode_do_bone_shit" )
+	    	net.WriteEntity(ent)
+	    	net.WriteTable(bones_sigma_table)
+	    	net.WriteString(main_sigma_bone)
+	    net.Broadcast()
+	end
+end
 function GetClosestPhysBone(ent,pos)
 	local closest_distance = -1
 	local closest_bone = -1
@@ -92,6 +102,8 @@ function sigma_gib(ragdoll,bone_name)
 			end
 		end
 	end
+	local sigma_table = ragdoll.slice_gib[bone_id]
+	do_pos_bone_shit(ragdoll,sigma_table,bone_idw)
 end
 function sigma_children(ragdoll,bone_id)
 	local sigma = ragdoll:GetChildBones(bone_id)
