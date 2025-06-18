@@ -1,11 +1,8 @@
-util.AddNetworkString( "gore_mode_do_bone_shit" ) 
-function do_pos_bone_shit(ent,bones_sigma_table,main_sigma_bone)
-	if IsValid(ent) then
-	    net.Start( "gore_mode_do_bone_shit" )
-	    	net.WriteEntity(ent)
-	    	net.WriteTable(bones_sigma_table)
-	    	net.WriteString(main_sigma_bone)
-	    net.Broadcast()
+function do_pos_bone_shit(ragdoll,bones_sigma_table,main_sigma_bone)
+	if IsValid(ragdoll) then
+		net.Start( "gore_mode_do_bone_shit" )
+			net.WriteEntity(ragdoll)
+		net.Broadcast()
 	end
 end
 function GetClosestPhysBone(ent,pos)

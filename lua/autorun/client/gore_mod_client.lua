@@ -1,17 +1,15 @@
-net.Receive("gore_mode_do_bone_shit", function()
+net.Receive( "gore_mode_do_bone_shit", function( len, ply )
     local ragdoll = net.ReadEntity()
-    local bones_sigma_table = net.ReadTable()
-    local main_sigma_bone = net.ReadString()
     if IsValid(ragdoll) then
-        ragdoll.bone_gib_aids_shit = bones_table
-        ragdoll.main_penis = main_bone
+        ragdoll.main_penis = ragdoll:LookupBone( "ValveBiped.Bip01_Head1" )
     end
-end)
-hook.Add("PrePlayerDraw", "HeadsUp", function(ply, flags)
+end )
+hook.Add("PrePlayerDraw", "sigma_bone_move", function(ply, flags)
     for _, ragdoll in ipairs(ents.GetAll()) do
-        if IsValid(ragdoll) and ragdoll:IsRagdoll() and ragdoll.bone_gib_aids_shit then
+        if IsValid(ragdoll) and ragdoll:IsRagdoll() and ragdoll.main_penis then
             for i = 0, ragdoll:GetBoneCount()-1 do
-                if ragdoll.bone_gib_aids_shit[i] ~= i then
+                print(ragdoll)
+                if ragdoll.main_penis ~= i then
                     local matrix = ragdoll:GetBoneMatrix(ragdoll.main_penis)
                     local pos = matrix:GetTranslation()
                     local ang = matrix:GetAngles()
