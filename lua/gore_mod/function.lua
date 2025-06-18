@@ -15,7 +15,7 @@ function GetClosestPhysBone(ent,pos)
 		if bone then 
 			local phys = ent:GetPhysicsObjectNum(i)
 			
-			if IsValid(phys) then
+			if IsValid(phys) and pos then
 				local distance = phys:GetPos():Distance(pos)
 				
 				if (distance < closest_distance || closest_distance == -1) then
@@ -33,13 +33,14 @@ function colideBone(ragdoll,phys_bone)
 	colide:SetMass(0.01)
 end
 function gib_PhysBone(ragdoll,bone_name,damege_data)
-    if ragdoll:LookupBone(bone_name) == nil then return end
+    if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     if !ragdoll.gib_bone then ragdoll.gib_bone = {} table.insert(gib_PhysBone_RAGDOLLS, ragdoll) end
 
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
     hook.Call( "noob_gore_gap", nil,ragdoll,model,bone_name) --call this hook to make cap based on bone name
 
     ragdoll:ManipulateBoneScale(bone_id,Vector(0,0,0)) --scale the bone
+	ragdoll:ManipulateBonePosition(bone_id, Vector(0, 0, 0)/0)
     local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
     local ObjectNum = ragdoll:GetPhysicsObjectNum(PhysBone)
 			
@@ -66,7 +67,7 @@ function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of
 	end
 end
 function decap_ragdoll(ragdoll,bone_name)
-    if ragdoll:LookupBone(bone_name) == nil then return end
+    if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
 	local ragdollGIB = ents.Create("prop_ragdoll")
@@ -94,6 +95,7 @@ function sigma_gib(ragdoll,bone_name)
 		if ragdoll.slice_gib[bone] ~= bone then
 			if bone ~= k then
 				ragdoll:ManipulateBoneScale(bone,Vector(0,0,0)) --scale the bone
+				ragdoll:ManipulateBonePosition(bone, Vector(0, 0, 0)/0)
 				ragdoll:RemoveInternalConstraint(i)
 				colideBone(ragdoll,i)
 			end
