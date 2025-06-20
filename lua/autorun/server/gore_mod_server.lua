@@ -1,4 +1,4 @@
-util.AddNetworkString( "gore_mode_do_bone_shit" ) 
+
 hook.Add( "ScaleNPCDamage", "ScaleNPCDamageExample", function( npc, hitgroup, dmginfo )
     npc.dmg_pos = dmginfo:GetDamagePosition()
 end)
