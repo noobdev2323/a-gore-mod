@@ -8,6 +8,7 @@ hook.Add("CreateEntityRagdoll", "Replace_shit_Ragdoll", function(owner, ragdoll)
     local bone = ragdoll:TranslatePhysBoneToBone(hit)
     local bone_name = ragdoll:GetBoneName( bone ) 	
     gib_PhysBone(ragdoll,bone_name)
+    hook.Call( "noob_gore_gap", nil,ragdoll,ragdoll:GetModel(),bone_name) --call this hook to make cap based on bone name
     decap_ragdoll(ragdoll,bone_name)
 end)
 
