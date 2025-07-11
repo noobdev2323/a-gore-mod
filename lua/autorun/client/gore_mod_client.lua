@@ -4,14 +4,15 @@ net.Receive( "noob_gore_sigma_matrix", function()
     local main_bone = net.ReadInt( 8 ) -- use the same number of bits that were written.
     if ( !IsValid( ent ) ) then return end
 
-    for i=0, ent:GetBoneCount() - 1 do -- "ragdoll" being a ragdoll entity
-		if sigma_table[i] ~= main_bone then
-
-			
-    
-            local BoneMatrix = ent:GetBoneMatrix(i)
+    for k, v in pairs(sigma_table) do
+        if ent:GetBoneName(k) ~= "__INVALIDBONE__" then
+            if sigma_table[v] ~= main_bone then
+                local Pos = ent:GetBoneMatrix( main_bone ):GetTranslation()
+                local BoneMatrix = ent:GetBoneMatrix(v)
                 BoneMatrix:Scale( vector_origin ) --vector_origin = Vector( 0, 0, 0 )
-            ent:SetBoneMatrix( i, BoneMatrix )
-		end
+                BoneMatrix:SetTranslation( Pos )
+                ent:SetBoneMatrix( v, BoneMatrix )
+            end
+        end
 	end
 end )
