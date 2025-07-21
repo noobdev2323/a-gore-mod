@@ -24,7 +24,8 @@ end
 function colideBone(ragdoll,phys_bone)
 	local colide = ragdoll:GetPhysicsObjectNum( phys_bone ) --get bone id
 	colide:EnableCollisions(false)
-	colide:SetMass(0.01)
+	colide:SetMass(0)
+	colide:Sleep()
 end
 function gib_PhysBone(ragdoll,bone_name,damege_data)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
@@ -68,14 +69,14 @@ function decap_ragdoll(ragdoll,bone_name)
     	ragdollGIB:SetPos(ragdoll:GetPos()) 
         ragdollGIB:SetSkin( ragdoll:GetSkin() )
     	ragdollGIB:Spawn()
-		ragdollGIB:SetCollisionGroup(COLLISION_GROUP_WORLD)
+		--ragdollGIB:SetCollisionGroup(COLLISION_GROUP_WORLD)
 
 		noob_gore_TransferBones( ragdoll, ragdollGIB )
-		sigma_gib(ragdollGIB,bone_name)
+		slice_gib(ragdollGIB,bone_name)
 		sigma_scale(ragdollGIB)
 	end
 end
-function sigma_gib(ragdoll,bone_name)
+function slice_gib(ragdoll,bone_name)
 	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
 	if !ragdoll.slice_gib then ragdoll.slice_gib = {} table.insert(gib_PhysBone_RAGDOLLS, ragdoll) end
@@ -87,28 +88,24 @@ function sigma_gib(ragdoll,bone_name)
 	sigma_children(ragdoll,bone_id)
 	local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
 	ragdoll:RemoveInternalConstraint(PhysBone) --remove ragdoll Constraint
-	
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		local bone = ragdoll:TranslatePhysBoneToBone(i)
 		if ragdoll.slice_gib[bone] ~= bone then
-			ragdoll:ManipulateBoneScale(bone,Vector(0,0,0)) --scale the bone
 			ragdoll:RemoveInternalConstraint(i)
 			colideBone(ragdoll,i)
-
-			local parent = ragdoll:GetChildBones(i)
-            net.Start( "noob_gore_sigma_matrix" )
-            	net.WriteEntity(ragdoll)
-				net.WriteTable(ragdoll.slice_gib)
-				net.WriteInt( 8, bone_id )
-            net.Broadcast()
 		end
 	end
 end
 function sigma_children(ragdoll,bone_id)
 	local sigma = ragdoll:GetChildBones(bone_id)
     for k, v in pairs(sigma) do --no more shit code
-        ragdoll.slice_gib[v] = v
-		sigma_children(ragdoll,v)
+		local PhysBone = ragdoll:TranslateBoneToPhysBone(v)
+		local ObjectNum = ragdoll:GetPhysicsObjectNum(PhysBone)
+				
+		if ObjectNum:IsValid() then --check if the object is valid
+			ragdoll.slice_gib[v] = v
+			sigma_children(ragdoll,v)
+		end
     end
 end
 function sigma_scale(ragdoll)
@@ -122,6 +119,9 @@ gib_PhysBone_RAGDOLLS = {}
 
 hook.Add("Think", "ForcePhysbonePositions_Think_sigma", function()
     for _,ragdoll in ipairs( gib_PhysBone_RAGDOLLS ) do
+		if not ragdoll:IsValid() then
+			table.RemoveByValue(gib_PhysBone_RAGDOLLS, ragdoll) --remove ragdoll on the table
+		end
 		if ragdoll.gib_bone then
 			ForcePhysBonePos(ragdoll) 
 		end
@@ -141,8 +141,12 @@ function ForcePhysBonePos(ragdoll)
 	end
 end
 function ForcePhysBonePos2(ragdoll)
+	print("sigma")
+
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		local boneid = ragdoll:TranslatePhysBoneToBone(i)
+		local bone_parent_name = ragdoll:GetBoneName(boneid)
+		print(bone_parent_name)
 		if boneid then 
 			local phys = ragdoll:GetPhysicsObjectNum(i)
 			
@@ -156,6 +160,7 @@ function ForcePhysBonePos2(ragdoll)
 			end
 		end
 	end
+	print("sigma")
 end
 function bonemerge_prop(ragdoll,model)
 	local npc_model = ragdoll:GetModel()
@@ -181,3 +186,10 @@ end
 concommand.Add( "ngm_debug_print_ragdoll_table", function( ply, cmd, args )
     PrintTable(gib_PhysBone_RAGDOLLS)
 end )
+function dismember_limb(ragdoll,bone_name,slice)
+	gib_PhysBone(ragdoll,bone_name)
+	hook.Call( "noob_gore_gap", nil,ragdoll,ragdoll:GetModel(),bone_name) --call this hook to make cap based on bone name
+	if slice then
+		decap_ragdoll(ragdoll,bone_name)
+	end
+end

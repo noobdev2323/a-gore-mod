@@ -35,8 +35,7 @@ function TOOL:LeftClick(trace)
 		local hit = GetClosestPhysBone(ent,hitposition)
 		local bone = ent:TranslatePhysBoneToBone(hit)
 		local bone_name = ent:GetBoneName( bone ) 	
-		gib_PhysBone(ent,bone_name)
-		hook.Call( "noob_gore_gap", nil,ent,ent:GetModel(),bone_name) --call this hook to make cap based on bone name
+		dismember_limb(ent,bone_name)
 		ent:EmitSound('garrysmod/save_load'..math.random(1,3)..'.wav', 75, 100, 0.4) --make funny sound
 	end
 end
@@ -52,9 +51,7 @@ function TOOL:RightClick(trace)
 		local hit = GetClosestPhysBone(ent,hitposition)
 		local bone = ent:TranslatePhysBoneToBone(hit)
 		local bone_name = ent:GetBoneName( bone ) 	
-		gib_PhysBone(ent,bone_name)
-		hook.Call( "noob_gore_gap", nil,ent,ent:GetModel(),bone_name) --call this hook to make cap based on bone name
-		decap_ragdoll(ent,bone_name)
+		dismember_limb(ent,bone_name,true)
 		ent:EmitSound('garrysmod/save_load'..math.random(1,3)..'.wav', 75, 100, 0.4) --make funny sound
 	end
 end
