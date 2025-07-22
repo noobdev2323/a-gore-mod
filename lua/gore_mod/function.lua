@@ -86,6 +86,7 @@ function slice_gib(ragdoll,bone_name)
 	ragdoll.slice_gib[bone_id] = bone_id
 	ragdoll.main_bone_sigma = bone_id
 	sigma_children(ragdoll,bone_id)
+
 	local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
 	ragdoll:RemoveInternalConstraint(PhysBone) --remove ragdoll Constraint
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
@@ -108,10 +109,16 @@ function sigma_children(ragdoll,bone_id)
 		end
     end
 end
+
 function sigma_scale(ragdoll)
+	local sigma = ragdoll:GetBoneParent(ragdoll.main_bone_sigma)
+	local sigma2 = ragdoll:GetBoneParent(sigma)
     for i = 0, ragdoll:GetBoneCount()-1 do
 		if ragdoll.slice_gib[i] ~= i then
-			ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone
+			ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone	
+			if i ~= sigma and i ~= sigma2 then
+				ragdoll:ManipulateBonePosition(i, Vector(0, 0, 0)/0)
+			end
 		end
     end
 end
@@ -141,12 +148,8 @@ function ForcePhysBonePos(ragdoll)
 	end
 end
 function ForcePhysBonePos2(ragdoll)
-	print("sigma")
-
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		local boneid = ragdoll:TranslatePhysBoneToBone(i)
-		local bone_parent_name = ragdoll:GetBoneName(boneid)
-		print(bone_parent_name)
 		if boneid then 
 			local phys = ragdoll:GetPhysicsObjectNum(i)
 			
@@ -160,7 +163,6 @@ function ForcePhysBonePos2(ragdoll)
 			end
 		end
 	end
-	print("sigma")
 end
 function bonemerge_prop(ragdoll,model)
 	local npc_model = ragdoll:GetModel()
