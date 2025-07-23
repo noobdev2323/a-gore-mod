@@ -1,4 +1,8 @@
 util.AddNetworkString( "noob_gore_sigma_matrix" )
+gore_mod_bones_slice_blacklist = {
+	"ValveBiped.Bip01_R_Thigh",
+	"ValveBiped.Bip01_L_Thigh"
+}
 function GetClosestPhysBone(ent,pos)
 	local closest_distance = -1
 	local closest_bone = -1
@@ -69,7 +73,7 @@ function decap_ragdoll(ragdoll,bone_name)
     	ragdollGIB:SetPos(ragdoll:GetPos()) 
         ragdollGIB:SetSkin( ragdoll:GetSkin() )
     	ragdollGIB:Spawn()
-		--ragdollGIB:SetCollisionGroup(COLLISION_GROUP_WORLD)
+		ragdollGIB:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 
 		noob_gore_TransferBones( ragdoll, ragdollGIB )
 		slice_gib(ragdollGIB,bone_name)
@@ -113,14 +117,18 @@ end
 function sigma_scale(ragdoll)
 	local sigma = ragdoll:GetBoneParent(ragdoll.main_bone_sigma)
 	local sigma2 = ragdoll:GetBoneParent(sigma)
-    for i = 0, ragdoll:GetBoneCount()-1 do
-		if ragdoll.slice_gib[i] ~= i then
-			ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone	
-			if i ~= sigma and i ~= sigma2 then
-				ragdoll:ManipulateBonePosition(i, Vector(0, 0, 0)/0)
+	local bone_name = ragdoll:GetBoneName(ragdoll.main_bone_sigma)
+
+		for i = 0, ragdoll:GetBoneCount()-1 do
+			if ragdoll.slice_gib[i] ~= i then
+				ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone	
+				if !table.HasValue( gore_mod_bones_slice_blacklist, bone_name ) then
+					if i ~= sigma and i ~= sigma2 then
+						ragdoll:ManipulateBonePosition(i, Vector(0, 0, 0)/0)
+					end
+				end
 			end
 		end
-    end
 end
 gib_PhysBone_RAGDOLLS = {}
 
