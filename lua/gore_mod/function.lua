@@ -1,8 +1,5 @@
 util.AddNetworkString( "noob_gore_sigma_matrix" )
-gore_mod_bones_slice_blacklist = {
-	"ValveBiped.Bip01_R_Thigh",
-	"ValveBiped.Bip01_L_Thigh"
-}
+
 function GetClosestPhysBone(ent,pos)
 	local closest_distance = -1
 	local closest_bone = -1
@@ -30,6 +27,8 @@ function colideBone(ragdoll,phys_bone)
 	colide:EnableCollisions(false)
 	colide:SetMass(0)
 	colide:Sleep()
+	colide:SetMaterial("gmod_silent")
+	colide:EnableGravity(false)
 end
 function gib_PhysBone(ragdoll,bone_name,damege_data)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
@@ -74,10 +73,17 @@ function decap_ragdoll(ragdoll,bone_name)
         ragdollGIB:SetSkin( ragdoll:GetSkin() )
     	ragdollGIB:Spawn()
 		ragdollGIB:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-
+		for i = 1, #ragdoll:GetBodyGroups() do
+			ragdollGIB:SetBodygroup(i, ragdoll:GetBodygroup(i))
+		end
 		noob_gore_TransferBones( ragdoll, ragdollGIB )
 		slice_gib(ragdollGIB,bone_name)
 		sigma_scale(ragdollGIB)
+		net.Start( "noob_gore_sigma_matrix" )
+			net.WriteEntity(ragdollGIB)
+			net.WriteTable( ragdollGIB.slice_gib )
+			net.WriteInt( ragdollGIB.main_bone_sigma, 8 )
+		net.Broadcast()
 	end
 end
 function slice_gib(ragdoll,bone_name)
@@ -115,20 +121,13 @@ function sigma_children(ragdoll,bone_id)
 end
 
 function sigma_scale(ragdoll)
-	local sigma = ragdoll:GetBoneParent(ragdoll.main_bone_sigma)
-	local sigma2 = ragdoll:GetBoneParent(sigma)
 	local bone_name = ragdoll:GetBoneName(ragdoll.main_bone_sigma)
 
-		for i = 0, ragdoll:GetBoneCount()-1 do
-			if ragdoll.slice_gib[i] ~= i then
-				ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone	
-				if !table.HasValue( gore_mod_bones_slice_blacklist, bone_name ) then
-					if i ~= sigma and i ~= sigma2 then
-						ragdoll:ManipulateBonePosition(i, Vector(0, 0, 0)/0)
-					end
-				end
-			end
+	for i = 0, ragdoll:GetBoneCount()-1 do
+		if ragdoll.slice_gib[i] ~= i then
+			ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone	
 		end
+	end
 end
 gib_PhysBone_RAGDOLLS = {}
 

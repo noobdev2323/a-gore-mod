@@ -8,7 +8,7 @@ hook.Add( "ScaleNPCDamage", "ScaleNPCDamageExample", function( npc, hitgroup, dm
 end)
 hook.Add("CreateEntityRagdoll", "Replace_shit_Ragdoll", function(owner, ragdoll)
     local hitposition = owner.dmg_pos
-
+    print(owner.dmg_type)
     if hitposition == nil and owner.attacker:GetWeapon( "weapon_lscs" ) then
         local pos = owner.attacker:GetBonePosition(owner.attacker:LookupBone("ValveBiped.Bip01_R_Hand"))
         hitposition = pos
