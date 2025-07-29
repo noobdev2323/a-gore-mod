@@ -62,6 +62,7 @@ function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of
 		end
 	end
 end
+/*
 function decap_ragdoll(ragdoll,bone_name)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
@@ -81,11 +82,19 @@ function decap_ragdoll(ragdoll,bone_name)
 		sigma_scale(ragdollGIB)
 		net.Start( "noob_gore_sigma_matrix" )
 			net.WriteEntity(ragdollGIB)
-			net.WriteTable( ragdollGIB.slice_gib )
 			net.WriteInt( ragdollGIB.main_bone_sigma, 8 )
 		net.Broadcast()
 	end
-end
+end 
+*/
+function decap_ragdoll(ragdoll,bone_name)
+    if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
+    local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
+	net.Start( "noob_gore_sigma_matrix" )
+		net.WriteEntity(ragdoll)
+		net.WriteInt(bone_id, 8 )
+	net.Broadcast()
+end 
 function slice_gib(ragdoll,bone_name)
 	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
