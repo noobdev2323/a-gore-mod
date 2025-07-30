@@ -1,5 +1,5 @@
 util.AddNetworkString( "noob_gore_sigma_matrix" )
-
+util.AddNetworkString( "noob_gore_benemerge" )
 function GetClosestPhysBone(ent,pos)
 	local closest_distance = -1
 	local closest_bone = -1
@@ -29,6 +29,7 @@ function colideBone(ragdoll,phys_bone)
 	colide:Sleep()
 	colide:SetMaterial("gmod_silent")
 	colide:EnableGravity(false)
+	colide:EnableMotion(false)
 end
 function gib_PhysBone(ragdoll,bone_name,damege_data)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
@@ -62,7 +63,7 @@ function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of
 		end
 	end
 end
-/*
+
 function decap_ragdoll(ragdoll,bone_name)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
@@ -80,13 +81,17 @@ function decap_ragdoll(ragdoll,bone_name)
 		noob_gore_TransferBones( ragdoll, ragdollGIB )
 		slice_gib(ragdollGIB,bone_name)
 		sigma_scale(ragdollGIB)
-		net.Start( "noob_gore_sigma_matrix" )
+		ragdollGIB:SetNoDraw(true )
+		ragdollGIB:DrawShadow(false )
+		net.Start( "noob_gore_benemerge" )
+			net.WriteEntity(ragdoll)
+			net.WriteInt(bone_id, 8 )
 			net.WriteEntity(ragdollGIB)
-			net.WriteInt( ragdollGIB.main_bone_sigma, 8 )
 		net.Broadcast()
 	end
 end 
-*/
+
+/*
 function decap_ragdoll(ragdoll,bone_name)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
@@ -95,6 +100,10 @@ function decap_ragdoll(ragdoll,bone_name)
 		net.WriteInt(bone_id, 8 )
 	net.Broadcast()
 end 
+*/
+
+
+
 function slice_gib(ragdoll,bone_name)
 	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
@@ -193,7 +202,6 @@ function bonemerge_prop(ragdoll,model)
 	ragdoll.bonemerge_prop = ents.Create("prop_physics") 
 	ragdoll.bonemerge_prop:SetModel(model)
 	ragdoll.bonemerge_prop:SetLocalPos(ragdoll:GetPos())
-	ragdoll.bonemerge_prop:SetOwner(ragdoll)
 	ragdoll.bonemerge_prop:SetParent(ragdoll)
 	ragdoll.bonemerge_prop:Fire("SetParentAttachment",Attachment)
 	ragdoll.bonemerge_prop:Spawn()
