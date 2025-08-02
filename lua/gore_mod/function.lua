@@ -1,5 +1,6 @@
 util.AddNetworkString( "noob_gore_sigma_matrix" )
 util.AddNetworkString( "noob_gore_benemerge" )
+
 function GetClosestPhysBone(ent,pos)
 	local closest_distance = -1
 	local closest_bone = -1
@@ -28,8 +29,6 @@ function colideBone(ragdoll,phys_bone)
 	colide:SetMass(0)
 	colide:Sleep()
 	colide:SetMaterial("gmod_silent")
-	colide:EnableGravity(false)
-	colide:EnableMotion(false)
 end
 function gib_PhysBone(ragdoll,bone_name,damege_data)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
@@ -58,7 +57,7 @@ function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of
 		local bone = ragdoll2:GetPhysicsObjectNum( i )
 		if ( IsValid( bone ) ) then
 			local pos, ang = ragdoll1:GetBonePosition( ragdoll2:TranslatePhysBoneToBone( i ) )
-			if ( pos ) then bone:SetPos( pos ) end
+			if ( pos ) then bone:SetPos( pos,true ) end
 			if ( ang ) then bone:SetAngles( ang ) end
 		end
 	end
@@ -139,8 +138,6 @@ function sigma_children(ragdoll,bone_id)
 end
 
 function sigma_scale(ragdoll)
-	local bone_name = ragdoll:GetBoneName(ragdoll.main_bone_sigma)
-
 	for i = 0, ragdoll:GetBoneCount()-1 do
 		if ragdoll.slice_gib[i] ~= i then
 			ragdoll:ManipulateBoneScale(i,Vector(0,0,0)) --scale the bone	
@@ -168,24 +165,21 @@ function ForcePhysBonePos(ragdoll)
 		local bone_parent = ragdoll:TranslateBoneToPhysBone(ragdoll:GetBoneParent(k ))
 		local gibbed_physobj = ragdoll:GetPhysicsObjectNum(bone)
 		local parent_physobj = ragdoll:GetPhysicsObjectNum(bone_parent)
-		gibbed_physobj:SetPos( parent_physobj:GetPos() )
+		gibbed_physobj:SetPos( parent_physobj:GetPos(),true)
 		gibbed_physobj:SetAngles( parent_physobj:GetAngles() )
 	end
 end
 function ForcePhysBonePos2(ragdoll)
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		local boneid = ragdoll:TranslatePhysBoneToBone(i)
-		if boneid then 
-			local phys = ragdoll:GetPhysicsObjectNum(i)
+		local phys = ragdoll:GetPhysicsObjectNum(i)
 			
-			if IsValid(phys) and ragdoll.slice_gib[boneid] ~= boneid then
-				local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
+		if IsValid(phys) and ragdoll.slice_gib[boneid] ~= boneid then
+			local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
 		
-				local gibbed_physobj = ragdoll:GetPhysicsObjectNum(i)
-				local parent_physobj = ragdoll:GetPhysicsObjectNum(main_bone)
-				gibbed_physobj:SetPos( parent_physobj:GetPos() )
-				gibbed_physobj:SetAngles( parent_physobj:GetAngles() )
-			end
+			local gibbed_physobj = ragdoll:GetPhysicsObjectNum(i)
+			local parent_physobj = ragdoll:GetPhysicsObjectNum(main_bone)
+			gibbed_physobj:SetPos( parent_physobj:GetPos(),true)
 		end
 	end
 end
