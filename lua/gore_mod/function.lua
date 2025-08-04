@@ -83,9 +83,9 @@ function decap_ragdoll(ragdoll,bone_name)
 		ragdollGIB:SetNoDraw(true )
 		ragdollGIB:DrawShadow(false )
 		net.Start( "noob_gore_benemerge" )
-			net.WriteEntity(ragdoll)
-			net.WriteInt(bone_id, 8 )
-			net.WriteEntity(ragdollGIB)
+			net.WriteEntity(ragdoll) --the original ragdoll
+			net.WriteInt(bone_id, 8 ) --bone to get cut
+			net.WriteEntity(ragdollGIB)--the ragdoll limb
 		net.Broadcast()
 	end
 end 

@@ -59,7 +59,6 @@ end )
 function colideBone2(ragdoll,phys_bone)
 	local colide = ragdoll:GetPhysicsObjectNum( phys_bone ) --get bone id
 	colide:EnableCollisions(false)
-	colide:EnableDrag(false)
 	colide:SetMass(0)
 	colide:Sleep()
 	colide:SetMaterial("gmod_silent")
