@@ -27,13 +27,16 @@ end )
 net.Receive( "noob_gore_benemerge", function()
     local ent = net.ReadEntity()
     local main_bone = net.ReadInt( 8 ) -- use the same number of bits that were written.
-	local skibiri = net.ReadEntity()
+	local ragdoll_parent = net.ReadEntity()
+	if not ent:IsValid() then
+		return 
+	end
     local ragdoll = ClientsideRagdoll( ent:GetModel() )		-- Create a ragdoll using the player's model
 	ragdoll:SetRagdollPos( ent:GetPos() )
 	ragdoll:SetNoDraw( false )
 	ragdoll:DrawShadow( true )
 	ragdoll:SetSkin( ent:GetSkin() )
-	ragdoll:SetParent(skibiri)
+	ragdoll:SetParent(ragdoll_parent)
 	ragdoll:AddEffects(EF_BONEMERGE)
 	ragdoll:SetLOD(0)
 	ragdoll.is_a_ragdoll_gib = true 
@@ -114,14 +117,6 @@ function GibCallback(myself, boneCount)
         end
     end
 end
-concommand.Add( "player_csragdoll", function( ply )
-	local ragdoll = ClientsideRagdoll( ply:GetModel() )		-- Create a ragdoll using the player's model
-	ragdoll:SetNoDraw( false )
-	ragdoll:DrawShadow( true )
-	ragdoll:SetRagdollPos( ply:GetPos() )		-- Set the position of the ragdoll to the player's position
-
-    ragdoll:AddCallback("BuildBonePositions",GibCallback)
-end )
 
 hook.Add("PreCleanupMap", "Ragdoll_GibsCleanup", function()
 	for _, ragdoll in ipairs(ents.GetAll()) do
@@ -130,12 +125,3 @@ hook.Add("PreCleanupMap", "Ragdoll_GibsCleanup", function()
         end
     end
 end)
-concommand.Add( "test_csent", function( ply )
-
-	local trace = ply:GetEyeTrace()
-
-	local entity = ClientsideModel( "models/Lamarr.mdl" )
-	entity:SetPos( trace.HitPos + trace.HitNormal * 24 )
-	entity:Spawn()
-
-end )

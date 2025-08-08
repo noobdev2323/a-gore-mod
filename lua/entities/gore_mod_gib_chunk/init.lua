@@ -13,6 +13,7 @@ function ENT:Initialize()
 	
 	self:SetCollisionGroup( COLLISION_GROUP_DEBRIS )
 	self:SetHealth(40)
+	self.damage_Start_delay = CurTime() + 1
 end
 function ENT:Use(ply) 
 	local Position = ply:GetEyeTrace()
@@ -48,21 +49,26 @@ function ENT:PhysicsCollide(data, physobj)
 	end
 end
 function ENT:OnTakeDamage( dmginfo )
-    local dmg_force = dmginfo:GetDamage()
-    local dmg_pos = dmginfo:GetDamagePosition()
-	ParticleEffect("blood_impact_red_01_goop", dmg_pos, self:GetAngles(), self)
-	self:SetHealth(self:Health() - dmginfo:GetDamage())
-	if self:Health() <= 0 then
-		if not (self:GetModel() == "models/props_junk/watermelon01_chunk02a.mdl") then
-			local bloodspray = EffectData()
-			bloodspray:SetOrigin(self:GetPos())
-			bloodspray:SetScale(8)
-			bloodspray:SetFlags(3)
-			bloodspray:SetColor(0)
-			util.Effect("BloodImpact",bloodspray)
-			local forceVector = Vector(math.random(-250, 350), math.random(-250, 350), math.random(-250, 350))
-			shitgib(self,"models/props_junk/watermelon01_chunk02a.mdl","ValveBiped.Bip01_Head1",true,forceVector,true )
+	if CurTime() > self.damage_Start_delay then
+		local dmg_pos = dmginfo:GetDamagePosition()
+		ParticleEffect("blood_impact_red_01_goop", dmg_pos, self:GetAngles(), self)
+		self:SetHealth(self:Health() - dmginfo:GetDamage())
+		if self:Health() <= 0 and self.fucked == true  then
+			self.fucked = true 
+			if not (self:GetModel() == "models/props_junk/watermelon01_chunk02a.mdl") then
+				local bloodspray = EffectData()
+				bloodspray:SetOrigin(self:GetPos())
+				bloodspray:SetScale(8)
+				bloodspray:SetFlags(3)
+				bloodspray:SetColor(0)
+				util.Effect("BloodImpact",bloodspray)
+				local dmg_data = {
+					dmg_force = dmginfo:GetDamageForce()
+				}
+				gore_mod_make_gibs("models/props_junk/watermelon01_chunk02a.mdl",self:GetPos(),dmg_data,true) 
+			end
+			self:Remove() 
 		end
-		self:Remove() 
 	end
+
 end

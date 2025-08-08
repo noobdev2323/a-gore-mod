@@ -1,6 +1,9 @@
 util.AddNetworkString( "noob_gore_sigma_matrix" )
 util.AddNetworkString( "noob_gore_benemerge" )
-
+gore_mod_slice_damege = {
+	4,
+	1024
+}
 function GetClosestPhysBone(ent,pos)
 	local closest_distance = -1
 	local closest_bone = -1
@@ -35,12 +38,14 @@ function colideBone(ragdoll,phys_bone)
 	colide:AddGameFlag(1024) 
 	colide:EnableGravity(false)
 end
-function gib_PhysBone(ragdoll,bone_name,damege_data)
+function gib_PhysBone(ragdoll,bone_name,dmg_data)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     if !ragdoll.gib_bone then ragdoll.gib_bone = {} table.insert(gib_PhysBone_RAGDOLLS, ragdoll) end
 
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
-
+	if dmg_data.slice == false then
+		hook.Call( "noob_gore_on_gib_destroid", nil,ragdoll,bone_name,dmg_data) --call this hook to make gibs based on bone name
+	end
     ragdoll:ManipulateBoneScale(bone_id,Vector(0,0,0)) --scale the bone
     local PhysBone = ragdoll:TranslateBoneToPhysBone(bone_id)
     local ObjectNum = ragdoll:GetPhysicsObjectNum(PhysBone)
@@ -52,8 +57,8 @@ function gib_PhysBone(ragdoll,bone_name,damege_data)
     end
     local children = ragdoll:GetChildBones(bone_id)
     for k, v in pairs(children) do --no more shit code
-		local bone_parent_name = ragdoll:GetBoneName( v )
-        gib_PhysBone(ragdoll,bone_parent_name)
+		local bone_children_name = ragdoll:GetBoneName( v )
+        gib_PhysBone(ragdoll,bone_children_name,dmg_data)
     end
 end
 function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of one entity to a ragdoll's physics bones (modified version of some of RobotBoy655's code)
@@ -68,12 +73,29 @@ function noob_gore_TransferBones( ragdoll1, ragdoll2 ) -- Transfers the bones of
 	end
 end
 
+function gore_mod_make_gibs(model,position,dmg_data,meat)
+	local gib = ents.Create( "gore_mod_gib_chunk" )
+	gib:SetModel(model)
+	gib:SetPos(position)
+	gib:SetAngles(Angle(math.Rand(-180, 180), math.Rand(-180, 180), math.Rand(-180, 180))) 
+
+	gib:Spawn()	
+    local phys = gib:GetPhysicsObject()
+
+    if IsValid(phys) then 
+		phys:AddVelocity(Vector(math.Rand(-100, 100), math.Rand(-100, 100), math.Rand(150, 250)) + (dmg_data.dmg_force / 18))
+		phys:AddAngleVelocity(Vector(math.Rand(-200, 200), math.Rand(-200, 200), math.Rand(-200, 200)))
+	end   
+	if meat == true then gib:SetMaterial( "models/flesh" ) end
+	
+end 
+
 function decap_ragdoll(ragdoll,bone_name,dmg_data)
     if ragdoll:LookupBone(bone_name) == nil or ragdoll:LookupBone(bone_name) == 0 then return end
     local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
 	local ragdollGIB = ents.Create("prop_ragdoll")
-    if IsValid(ragdollGIB) then
+    if IsValid(ragdollGIB) and IsValid(ragdoll) then
     	ragdollGIB:SetModel(ragdoll:GetModel())
     	ragdollGIB:SetPos(ragdoll:GetPos()) 
         ragdollGIB:SetSkin( ragdoll:GetSkin() )
@@ -82,9 +104,10 @@ function decap_ragdoll(ragdoll,bone_name,dmg_data)
 		for i = 1, #ragdoll:GetBodyGroups() do
 			ragdollGIB:SetBodygroup(i, ragdoll:GetBodygroup(i))
 		end
-		noob_gore_TransferBones( ragdoll, ragdollGIB )
+
 		slice_gib(ragdollGIB,bone_name)
 		sigma_scale(ragdollGIB)
+		noob_gore_TransferBones( ragdoll, ragdollGIB )
 		ragdollGIB:SetNoDraw(true )
 		ragdollGIB:DrawShadow(false )
 		net.Start( "noob_gore_benemerge" )
@@ -97,6 +120,11 @@ function decap_ragdoll(ragdoll,bone_name,dmg_data)
 			local PhysicsObject = ragdollGIB:GetPhysicsObjectNum( PhysBone )
 			PhysicsObject:AddVelocity(dmg_data.dmg_force/18)	
 		end
+		timer.Simple(GetConVar("sliced_ragdoll_fade_time"):GetFloat(), function()
+			if IsValid(ragdollGIB) then
+				ragdollGIB:Remove()
+			end
+		end)
 	end
 end 
 
@@ -116,7 +144,7 @@ end
 function slice_gib(ragdoll,bone_name)
 	local bone_id = ragdoll:LookupBone(bone_name) --get bone id from bone name
 
-	if !ragdoll.slice_gib then ragdoll.slice_gib = {} table.insert(gib_PhysBone_RAGDOLLS, ragdoll) end
+	if !ragdoll.slice_gib then ragdoll.slice_gib = {} end
 	if ragdoll.slice_gib[bone_id] == bone_id then
 		return 
 	end
@@ -129,6 +157,8 @@ function slice_gib(ragdoll,bone_name)
 	for i=0, ragdoll:GetPhysicsObjectCount() - 1 do -- "ragdoll" being a ragdoll entity
 		local bone = ragdoll:TranslatePhysBoneToBone(i)
 		if ragdoll.slice_gib[bone] ~= bone then
+			ragdoll:RemoveInternalConstraint(i) --remove ragdoll Constraint
+			ForcePhysBonePos2(ragdoll)
 			colideBone(ragdoll,i)
 		end
 	end
@@ -187,7 +217,7 @@ function ForcePhysBonePos2(ragdoll)
 		local phys = ragdoll:GetPhysicsObjectNum(i)
 			
 		if IsValid(phys) and ragdoll.slice_gib[boneid] ~= boneid then
-			local main_bone = ragdoll:TranslateBoneToPhysBone(ragdoll.main_bone_sigma)
+			local main_bone = ragdoll:TranslateBoneToPhysBone(0)
 		
 			local gibbed_physobj = ragdoll:GetPhysicsObjectNum(i)
 			local parent_physobj = ragdoll:GetPhysicsObjectNum(main_bone)
@@ -218,10 +248,10 @@ end
 concommand.Add( "ngm_debug_print_ragdoll_table", function( ply, cmd, args )
     PrintTable(gib_PhysBone_RAGDOLLS)
 end )
-function dismember_limb(ragdoll,bone_name,dmg_data,slice)
-	gib_PhysBone(ragdoll,bone_name)
+function dismember_limb(ragdoll,bone_name,dmg_data)
+	gib_PhysBone(ragdoll,bone_name,dmg_data)
 	hook.Call( "noob_gore_gap", nil,ragdoll,ragdoll:GetModel(),bone_name) --call this hook to make cap based on bone name
-	if slice then
+	if dmg_data.slice == true then
 		decap_ragdoll(ragdoll,bone_name,dmg_data)
 	end
 end
